@@ -16,7 +16,7 @@ Convert predicted delay probability into operational risk levels:
 | < 0.40            | Low Risk   |
 | 0.40 – 0.70       | Medium Risk|
 | > 0.70            | High Risk  |
-| > 0.85            | Critical Risk |
+| > 0.88            | Critical Risk |
 
 ### 3️ Rule-Based Risk Overrides
 Enhance ML predictions with domain-driven business logic:
