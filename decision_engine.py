@@ -24,7 +24,7 @@ def classify_risk(delay_probability):
         return "Low"
     elif delay_probability <= 0.70:
         return "Medium"
-    elif delay_probability <= 0.90:
+    elif delay_probability <= 0.88:
         return "High"
     else:
         return "Critical"
