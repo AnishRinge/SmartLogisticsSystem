@@ -1,3 +1,27 @@
+## How to Run the Project
+
+Follow these steps to set up and run the Smart Logistics Decision System locally.
+
+---
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/YOUR_USERNAME/Smart-Logistics-System.git
+cd Smart-Logistics-System
+
+python -m venv venv
+venv\Scripts\activate
+
+pip install -r requirements.txt
+
+pip install streamlit scikit-learn pandas numpy
+
+python -m streamlit run app.py
+
+# Open in Browser
+http://localhost:8501
+
 ##  Project Overview
 
 The Smart Logistics Decision System aims to optimize delivery operations using data-driven decision making. The system integrates operational data, environmental factors, and predictive modeling to improve route efficiency, delivery time estimation, and cost optimization.
