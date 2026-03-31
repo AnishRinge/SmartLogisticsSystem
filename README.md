@@ -2,11 +2,9 @@
 
 Follow these steps to set up and run the Smart Logistics Decision System locally.
 
----
 
-### 1. Clone the Repository
+## Clone the Repository
 
-```bash
 git clone https://github.com/YOUR_USERNAME/Smart-Logistics-System.git
 cd Smart-Logistics-System
 
@@ -19,7 +17,7 @@ pip install streamlit scikit-learn pandas numpy
 
 python -m streamlit run app.py
 
-# Open in Browser
+## Open in Browser
 http://localhost:8501
 
 ##  Project Overview
