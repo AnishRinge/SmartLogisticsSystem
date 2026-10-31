@@ -536,8 +536,13 @@
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
+import sys
+from pathlib import Path
+
+APP_DIR = Path(__file__).resolve().parent
+if str(APP_DIR) not in sys.path:
+    sys.path.insert(0, str(APP_DIR))
 
 from decision_engine import (
     classify_risk,
@@ -546,7 +551,6 @@ from decision_engine import (
     calculate_optimized_eta,
     generate_notification
 )
-from decision_engine import calculate_financial_impact
 
 # ======================================
 # PAGE CONFIG
@@ -600,37 +604,37 @@ st.title("🚚 Smart Logistics Risk Intelligence System")
 with st.container():
     st.subheader("📊 Analysis Mode")
     mode = st.radio(
-        "",
+        "Select analysis mode",
         ["Single Shipment", "Batch Shipment"],
-        horizontal=True
+        horizontal=True,
+        label_visibility="collapsed"
     )
 # ======================================
 # LOAD MODEL & SCALER  
 # ======================================
 
-model = joblib.load("models/delay_model.pkl")
-scaler = joblib.load("models/scaler.pkl")
+model = joblib.load(APP_DIR / "models" / "delay_model.pkl")
+scaler = joblib.load(APP_DIR / "models" / "scaler.pkl")
 
 # ======================================
 # LOAD SYSTEM DATA (FOR MEANS & CONSTANTS)
 # ======================================
 
-df_system = pd.read_csv("data/processed/dataset_with_risk_levels.csv")
+df_system = pd.read_csv(
+    APP_DIR / "data" / "processed" / "dataset_with_risk_levels.csv"
+)
 
-# Training feature order (EXACTLY as used in model training)
-training_features = [
-    'Latitude', 'Longitude', 'Inventory_Level', 'Temperature', 'Humidity',
-    'Precipitation(mm)', 'Waiting_Time', 'User_Transaction_Amount',
-    'User_Purchase_Frequency', 'Asset_Utilization', 'Demand_Forecast',
-    'hour', 'day_of_week', 'peak_hour',
-    'Traffic_Status_Detour', 'Traffic_Status_Heavy',
-    'Asset_ID_Truck_10', 'Asset_ID_Truck_2', 'Asset_ID_Truck_3',
-    'Asset_ID_Truck_4', 'Asset_ID_Truck_5', 'Asset_ID_Truck_6',
-    'Asset_ID_Truck_7', 'Asset_ID_Truck_8', 'Asset_ID_Truck_9',
-    'Asset_ID_Truck_10'
+training_features = list(scaler.feature_names_in_)
+missing_features = [
+    feature for feature in training_features if feature not in df_system.columns
 ]
+if missing_features:
+    st.error(
+        "The processed dataset is missing model features: "
+        + ", ".join(missing_features)
+    )
+    st.stop()
 
-# Compute feature means
 feature_means = df_system[training_features].mean()
 
 # Operational baseline time
@@ -715,7 +719,7 @@ def add_bg_video(video_path):
 
 """, unsafe_allow_html=True)
 
-add_bg_video("video.mp4")
+add_bg_video(APP_DIR / "video.mp4")
 
 # ======================================
 # USER INPUTS (Only Important Ones)
@@ -768,7 +772,6 @@ if mode == "Single Shipment":
             value=10
         )
 
-st.markdown('</div>', unsafe_allow_html=True)
 # ======================================
 # ANALYSIS
 # ======================================
@@ -784,10 +787,6 @@ if mode == "Single Shipment":
     if analyze:
 
         with st.spinner("Running predictive risk models..."):
-
-            # Get exact training feature order
-            training_features = scaler.feature_names_in_
-            feature_means = df_system[training_features].mean()
 
             input_data = pd.DataFrame([feature_means], columns=training_features)
 
@@ -945,14 +944,21 @@ if mode == "Batch Shipment":
         st.write("Preview:")
         st.dataframe(df_batch.head())
 
-        results = []
+        required_cost_columns = {"User_Transaction_Amount", "shipping_cost"}
+        missing_cost_columns = sorted(required_cost_columns - set(df_batch.columns))
+        if missing_cost_columns:
+            st.error(
+                "The uploaded CSV is missing required cost columns: "
+                + ", ".join(missing_cost_columns)
+            )
+            st.stop()
 
-        training_features = scaler.feature_names_in_
+        results = []
 
         for _, row in df_batch.iterrows():
 
             input_data = pd.DataFrame(
-                [df_system[training_features].mean()],
+                [feature_means],
                 columns=training_features
             )
 
